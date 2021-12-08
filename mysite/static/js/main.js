@@ -47,7 +47,9 @@ btnJoin.addEventListener('click',() => {
 
     webSocket.addEventListener('open',(e)=>{
         console.log('Connection Opened!')
-        });
+
+        sendSignal('new-peer',{});
+    });
     webSocket.addEventListener('message', webSocketOnMessage);
     webSocket.addEventListener('close', (e)=> {
         console.log('Connection Closed!')
@@ -58,3 +60,33 @@ btnJoin.addEventListener('click',() => {
 
 })
 
+var localStream = new MediaStream();
+
+const constrains = {
+    'video': true,
+    'audio': true
+};
+
+const localVideo = document.querySelector('#local-video');
+
+
+var userMedia = navigator.mediaDevices.getUserMedia(constrains)
+    .then(stream =>{
+        localStream = stream;
+        localVideo.srcObject = localStream;
+        localVideo.muted = true;
+    })
+    .catch(error =>{
+        console.log('Error accessing media devices.', error);
+    })
+
+
+function sendSignal(action,message){
+     var jsonStr = JSON.stringify({
+            'peer': username,
+            'action': 'new-answer',
+            'message': message;
+
+        })
+        webSocket.send(jsonStr);
+}

@@ -24,6 +24,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         receive_dict = json.loads(text_data)
         message = receive_dict['message']
+        receive_dict['message']['reciever_channel_name'] = self.channel_name
 
         await self.channel_layer.group_send(
             self.room_group_name,
