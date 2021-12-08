@@ -176,9 +176,9 @@ var peer = new RTCPeerConnection(null);
             console.log('Connectin opened! ')
          });
         peer.dc.addEventListener('message', dcOnMessage);
-    });
 
-    mapPeers[peerUsername] = [peer, dc];
+        mapPeers[peerUsername] = [peer, peer.dc];
+    });
 
     peer.addEventListener('iceconnectionstatechange', ()=>{
         var iceConnectionState = peer.iceConnectionState;
@@ -200,19 +200,23 @@ var peer = new RTCPeerConnection(null);
            return;
        }
 
-       sendSignal('new-offer', {
+       sendSignal('new-answer', {
            'sdp':peer.localDescription,
            'receiver_channel_name': receiver_channel_name
        });
     });
+    peer.setRemoteDescription(offer)
+        .then(()=>{
+            console.log('remote descriprion set seccessuffly for %s.' peerUsername);
 
-    peer.createOffer()
-        .then(o => peer.setLocalDescription(o))
-        .then(() =>{
-            console.log('Local description set successfuly');
-        });
+            return peer.createAnswer();
+        })
+        .then(a => {
+            console.log('Answer created!');
+
+            peer.setLocalDescription(a)
+        })
 }
-
 
 
 function addLocalTracks(peer){
