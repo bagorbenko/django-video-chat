@@ -46,7 +46,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'send.sdp',
-                 'recieve_dict': receive_dict
+                 'receive_dict': receive_dict
             }
         )
 

@@ -22,7 +22,7 @@ function webSocketOnMessage(event){
     var receiver_channel_name = parsedData['message']['receiver_channel_name']
 
     if(action == 'new-peer'){
-        createOffere(peerUsername, receiver_channel_name);
+        createOfferer(peerUsername, receiver_channel_name);
 
         return;
     }
@@ -31,6 +31,16 @@ function webSocketOnMessage(event){
         var offer = parsedData['message']['sdp'];
 
         createAnswerer(offer, peerUsername, receiver_channel_name);
+
+        return;
+    }
+
+    if(action == 'new-answer'){
+        var answer = parsedData['message']['sdp'];
+
+        var peer = mapPeers[peerUsername][0];
+
+        peer.setRemoteDescription(answer);
 
         return;
     }
@@ -92,11 +102,45 @@ const constrains = {
 const localVideo = document.querySelector('#local-video');
 
 
+const btnToggleAudio = document.querySelector('#btn-toggle-audio');
+const btnToggleVideo = document.querySelector('#btn-toggle-video');
+
+
 var userMedia = navigator.mediaDevices.getUserMedia(constrains)
     .then(stream =>{
         localStream = stream;
         localVideo.srcObject = localStream;
         localVideo.muted = true;
+
+        var audioTracks = stream.getAudioTracks()
+        var videoTracks = stream.getVideoTracks()
+
+        audioTracks[0].enabled = true;
+        videoTracks[0].enabled = true;
+
+        btnToggleAudio.addEventListener('click', () => {
+            audioTracks[0].enabled = !audioTracks[0].enabled;
+
+            if(audioTracks[0].enabled){
+                btnToggleAudio.innerHTML = 'Audio Mute';
+
+                return;
+            }
+
+            btnToggleAudio.innerHTML = 'Audio Unmute';
+        });
+
+        btnToggleVideo.addEventListener('click', () => {
+            videoTracks[0].enabled = !videoTracks[0].enabled;
+
+            if(videoTracks[0].enabled){
+                btnToggleVideo.innerHTML = 'Video Off';
+
+                return;
+            }
+
+            btnToggleVideo.innerHTML = 'Video On';
+        });
     })
     .catch(error =>{
         console.log('Error accessing media devices.', error);
@@ -120,7 +164,7 @@ function createOfferer(peerUsername, receiver_channel_name){
 
     var dc = peer.createDataChannel(null)
     dc.addEventListener('open', () =>{
-      console.log('Connectin opened! ')
+      console.log('Connecting opened!')
     });
     dc.addEventListener('message', dcOnMessage);
 
@@ -207,7 +251,7 @@ var peer = new RTCPeerConnection(null);
     });
     peer.setRemoteDescription(offer)
         .then(()=>{
-            console.log('remote descriprion set seccessuffly for %s.' peerUsername);
+            console.log('remote descriprion set seccessuffly for %s.', peerUsername);
 
             return peer.createAnswer();
         })
