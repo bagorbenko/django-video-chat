@@ -1,2 +1,3 @@
 # Project exclude paths
 /venv/
+./mysite/db.sqlite3
